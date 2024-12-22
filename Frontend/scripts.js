@@ -1,5 +1,5 @@
 const API_URL = "http://127.0.0.1:5000"; // Backend API URL
-
+ 
 // Login User
 async function loginUser(userId, password) {
   try {
@@ -8,7 +8,7 @@ async function loginUser(userId, password) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: userId, password }),
     });
-
+ 
     if (response.ok) {
       alert("Login successful!");
       localStorage.setItem("userId", userId);
@@ -21,7 +21,7 @@ async function loginUser(userId, password) {
     console.error("Error logging in:", error);
   }
 }
-
+ 
 // Fetch Tasks
 async function fetchTasks(userId, password) {
   try {
@@ -31,7 +31,7 @@ async function fetchTasks(userId, password) {
         Authorization: `Basic ${btoa(`${userId}:${password}`)}`, // Use Basic Auth
       },
     });
-
+ 
     if (response.ok) {
       const tasks = await response.json();
       displayTasks(tasks);
@@ -42,7 +42,7 @@ async function fetchTasks(userId, password) {
     console.error("Error fetching tasks:", error);
   }
 }
-
+ 
 // Add Task
 document.getElementById("taskForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -50,15 +50,15 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
   const description = document.getElementById("description").value;
   const dueDate = document.getElementById("dueDate").value;
   const priority = document.getElementById("priority").value;
-
+ 
   const userId = localStorage.getItem("userId");
   const password = localStorage.getItem("password");
-
+ 
   if (!userId || !password) {
     alert("Please log in first.");
     return;
   }
-
+ 
   try {
     const response = await fetch(`${API_URL}/tasks`, {
       method: "POST",
@@ -68,7 +68,7 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
       },
       body: JSON.stringify({ title, description, due_date: dueDate, priority }),
     });
-
+ 
     if (response.ok) {
       fetchTasks(userId, password); // Reload tasks
       document.getElementById("taskForm").reset();
@@ -80,17 +80,17 @@ document.getElementById("taskForm").addEventListener("submit", async (e) => {
     console.error("Error adding task:", error);
   }
 });
-
+ 
 // Delete Task
 async function deleteTask(taskId) {
   const userId = localStorage.getItem("userId");
   const password = localStorage.getItem("password");
-
+ 
   if (!userId || !password) {
     alert("Please log in first.");
     return;
   }
-
+ 
   try {
     const response = await fetch(`${API_URL}/tasks/${taskId}`, {
       method: "DELETE",
@@ -98,7 +98,7 @@ async function deleteTask(taskId) {
         Authorization: `Basic ${btoa(`${userId}:${password}`)}`,
       },
     });
-
+ 
     if (response.ok) {
       fetchTasks(userId, password); // Reload tasks
       alert("Task deleted successfully!");
@@ -109,25 +109,25 @@ async function deleteTask(taskId) {
     console.error("Error deleting task:", error);
   }
 }
-
+ 
 // Display Tasks
 function displayTasks(tasks) {
   const taskList = document.getElementById("taskList");
   taskList.innerHTML = "";
-
+ 
   tasks.forEach((task) => {
     const li = document.createElement("li");
     li.textContent = `${task.title} (${task.priority}) - Due: ${task.due_date}`;
-
+ 
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
     deleteBtn.onclick = () => deleteTask(task.id);
-
+ 
     li.appendChild(deleteBtn);
     taskList.appendChild(li);
   });
 }
-
+ 
 // Login Form Handler
 document.getElementById("loginForm").addEventListener("submit", (e) => {
   e.preventDefault();

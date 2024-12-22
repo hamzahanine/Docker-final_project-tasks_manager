@@ -13,6 +13,7 @@ COPY requirements.txt /app/
 COPY .env /app/
 
 # Install dependencies
+RUN pip install flask pymysql flask-cors python-dotenv flask-sqlalchemy werkzeug
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the app directory into the container

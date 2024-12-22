@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS tokens (
 );
 
 -- Insert initial data into users table
-INSERT INTO users (id, password) VALUES ('test', 'password123');
+INSERT INTO user (id, password) VALUES ('test', 'password123');
 
 -- Insert initial data into tasks table
 INSERT INTO tasks (title, description, due_date, priority, created_by)
