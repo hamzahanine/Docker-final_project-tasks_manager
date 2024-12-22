@@ -1,7 +1,6 @@
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from models import db, User, Task
-from auth import verify_password, hash_password
 import base64
  
 bp = Blueprint('routes', __name__)
@@ -10,16 +9,31 @@ bp = Blueprint('routes', __name__)
 def home():
     return jsonify({'message': 'Welcome to the Task Management API!'}), 200
  
+# Helper function to extract and validate Basic Auth credentials
+def get_authenticated_user():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith("Basic "):
+        return None
+ 
+    try:
+        auth_type, auth_credentials = auth_header.split(" ")
+        user_id, password = base64.b64decode(auth_credentials).decode("utf-8").split(":")
+        user = User.query.get(user_id)
+        if user and user.password == password:
+            return user
+    except Exception as e:
+        return None
+    return None
+ 
 # User Registration
 @bp.route('/register', methods=['POST'])
 def register():
     data = request.json
     if User.query.get(data['id']):
         return jsonify({'error': 'User ID already exists'}), 400
-
-    # Securely store hashed password
-    hashed_password = hash_password(data['password'])
-    new_user = User(id=data['id'], password=hashed_password)
+ 
+    # Directly store the plain password (NOT SECURE, for testing purposes only)
+    new_user = User(id=data['id'], password=data['password'])
     db.session.add(new_user)
     db.session.commit()
     return jsonify({'message': 'User registered successfully'}), 201
@@ -29,38 +43,47 @@ def register():
 def login():
     data = request.json
     user = User.query.get(data['id'])
-
-    # Securely verify password
-    if user and verify_password(data['password'], user.password):
+ 
+    # Check if user exists and password matches
+    if user and data['password'] == user.password:
         return jsonify({'message': 'Login successful!', 'user_id': user.id}), 200
     else:
         return jsonify({'error': 'Invalid credentials'}), 401
  
 # Add Task
-def get_authenticated_user():
-    auth_header = request.headers.get('Authorization')
-    if auth_header:
-        auth_type, credentials = auth_header.split(' ')
-        user_id, password = base64.b64decode(credentials).decode('utf-8').split(':')
-        user = User.query.get(user_id)
-        if user and verify_password(password, user.password):
-            return user
-    return None
-
 @bp.route('/tasks', methods=['POST'])
 def add_task():
     user = get_authenticated_user()
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
  
+    data = request.json
+ 
+    # Convert due_date string to a datetime.date object
+    try:
+        due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+ 
+    new_task = Task(
+        title=data['title'],
+        description=data['description'],
+        due_date=due_date,
+        priority=data['priority'],
+        created_by=user.id
+    )
+    db.session.add(new_task)
+    db.session.commit()
+    return jsonify({'message': 'Task added successfully'}), 201
+ 
 # Get Tasks
 @bp.route('/tasks', methods=['GET'])
 def get_tasks():
-    user_id = request.args.get('user_id')
-    if not User.query.get(user_id):
+    user = get_authenticated_user()
+    if not user:
         return jsonify({'error': 'Unauthorized'}), 401
  
-    tasks = Task.query.filter_by(created_by=user_id).all()
+    tasks = Task.query.filter_by(created_by=user.id).all()
     return jsonify([{
         'id': task.id,
         'title': task.title,
@@ -72,12 +95,12 @@ def get_tasks():
 # Delete Task
 @bp.route('/tasks/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
-    user_id = request.args.get('user_id')
-    if not User.query.get(user_id):
+    user = get_authenticated_user()
+    if not user:
         return jsonify({'error': 'Unauthorized'}), 401
  
     task = Task.query.get(task_id)
-    if not task or task.created_by != user_id:
+    if not task or task.created_by != user.id:
         return jsonify({'error': 'Task not found or unauthorized'}), 404
  
     db.session.delete(task)
