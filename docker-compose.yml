@@ -1,0 +1,68 @@
+
+services:
+  # MySQL Service
+  mysql:
+    image: mysql:5.7
+    container_name: mysql1
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/database.sql
+    networks:
+      - mynetwork
+
+  # phpMyAdmin Service
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin1
+    ports:
+      - "8080:80"
+    networks:
+      - mynetwork
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: test
+      PMA_PASSWORD: test
+
+  # Flask Backend Service
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: backend1
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_ENV: development
+    env_file:
+      - Backend/.env
+    depends_on:
+      - mysql
+    networks:
+      - mynetwork
+
+  # Nginx Frontend Service
+  nginx:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile  # For nginx setup
+    container_name: nginx1
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - mynetwork
+
+volumes:
+  db_data:
+
+networks:
+  mynetwork:
+    driver: bridge

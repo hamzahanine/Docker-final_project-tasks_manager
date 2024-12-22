@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set "VIRTUAL_ENV=C:\Users\hamza\OneDrive\Documents\4éme-année\projet-virtu\final-project-docker-gestion_des_taches\Backend\venv"
+set "VIRTUAL_ENV=C:\Users\hamza\OneDrive\Documents\4éme-année\projet-virtu\Docker-final_project-tasks_manager\venv"
 
 if not defined PROMPT set PROMPT=$P$G
 
