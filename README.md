@@ -5,7 +5,7 @@ Adil MAAYOU - TD 45,
 Chadi ZABOUJ - TD 46,
 Ayoub GANI - TD 44
 
-
+Adil Maayou = user 'test' dans github
 
 Dans le cadre de ce projet, nous avons développé un gestionnaire de tâches où chaque utilisateur peut ajouter ou supprimer des tâches spécifiques.
 
@@ -33,6 +33,7 @@ Pour commencer, vous devez construire le projet en exécutant la commande suivan
 Ensuite, vous pourrez accéder au site via l’adresse suivante : http://localhost
 
 
+Pour accéder a la base de donnée veuillez utiliser l'adresse suivante :  http:/localhost:8080
 
 Pour ajouter un utilisateur ou une tâche, utilisez les commandes SQL suivantes :
 
